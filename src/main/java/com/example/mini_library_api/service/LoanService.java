@@ -1,5 +1,6 @@
 package com.example.mini_library_api.service;
 
+import com.example.mini_library_api.dto.LoanResponse;
 import com.example.mini_library_api.exception.BookNotAvailableException;
 import com.example.mini_library_api.exception.ResourceNotFoundException;
 import com.example.mini_library_api.model.Book;
@@ -25,7 +26,7 @@ public class LoanService {
     private final MemberRepository memberRepository;
 
     @Transactional
-    public Loan createLoan(Long bookId, Long memberId) {
+    public LoanResponse createLoan(Long bookId, Long memberId) {
         Book book = bookRepository.findByIdForUpdate(bookId)
                 .orElseThrow(() -> new ResourceNotFoundException("Libro no encontrado: " + bookId));
 
@@ -46,11 +47,12 @@ public class LoanService {
         loan.setLoanDate(LocalDate.now());
         loan.setDueDate(LocalDate.now().plusDays(LOAN_DAYS));
 
-        return loanRepository.save(loan);
+        Loan saved = loanRepository.save(loan);
+        return toResponse(saved);
     }
 
     @Transactional
-    public Loan returnLoan(Long loanId) {
+    public LoanResponse returnLoan(Long loanId) {
         Loan loan = loanRepository.findById(loanId)
                 .orElseThrow(() -> new ResourceNotFoundException("Préstamo no encontrado: " + loanId));
 
@@ -59,6 +61,17 @@ public class LoanService {
         }
 
         loan.setReturnedDate(LocalDate.now());
-        return loan;
+        return toResponse(loan);
+    }
+
+    private LoanResponse toResponse(Loan loan) {
+        return new LoanResponse(
+                loan.getId(),
+                loan.getBook().getTitle(),
+                loan.getMember().getName(),
+                loan.getLoanDate(),
+                loan.getDueDate(),
+                loan.getReturnedDate()
+        );
     }
 }
