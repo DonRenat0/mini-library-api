@@ -26,7 +26,7 @@ public class LoanService {
 
     @Transactional
     public Loan createLoan(Long bookId, Long memberId) {
-        Book book = bookRepository.findById(bookId)
+        Book book = bookRepository.findByIdForUpdate(bookId)
                 .orElseThrow(() -> new ResourceNotFoundException("Libro no encontrado: " + bookId));
 
         Member member = memberRepository.findById(memberId)
